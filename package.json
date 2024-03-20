@@ -1,0 +1,50 @@
+{
+  "name": "postcss-px-to-vw-strong",
+  "version": "0.0.0",
+  "description": "Support for converting CSS units (which convert PX by default) into viewport units (VW, VH, VMIN, and VMAX) support for custom units to customize the transformation content",
+  "keywords": [
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "postcss-px-to-vw-strong"
+  ],
+  "scripts": {
+    "prepare": "husky install",
+    "dev": "nodemon ./run-debug/index.js",
+    "test": "jest"
+  },
+  "author": "lxw-bfw <1143167344@qq.com>",
+  "license": "MIT",
+  "repository": "git@github.com:lxw-bfw/postcss-px-to-vw-strong",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "postcss": "^8.4.27"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "eslint": "^8.47.0",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.2",
+    "postcss": "^8.4.36",
+    "postcss-cli": "^11.0.0"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "jest"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2017
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ]
+  }
+}
