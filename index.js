@@ -7,6 +7,7 @@ const {
   validateParams,
   getUnit,
   declarationExists,
+  createCustomUnitReplace,
 } = require("./lib/utils");
 
 const defaults = {
@@ -23,6 +24,7 @@ const defaults = {
   landscape: false,
   landscapeUnit: "vw",
   landscapeWidth: 568,
+  customUnit: null, // 自定义单位
 };
 
 const ignoreNextComment = "px-to-viewport-ignore-next";
@@ -32,18 +34,13 @@ const ignorePrevComment = "px-to-viewport-ignore";
  * @type {import('postcss').PluginCreator}
  */
 module.exports = (options = {}) => {
-  // Work with options here
-  console.log("传入的配置参数", options);
-
   const opts = Object.assign({}, defaults, options);
-
-  console.log("合并后的参数", opts);
 
   // checkRegExpOrArray方法检测exclude和include选项类型是否正确。
   checkRegExpOrArray(opts, "exclude");
   checkRegExpOrArray(opts, "include");
 
-  // 用以匹配属性值的转换单位正则，比如`font-size:12px`，匹配到12px
+  // 用以匹配属性值的转换单位正则，排除覆盖了双引号和单引号以及url的情况，比如url(12px.jpg)不会转换
   const pxRegex = getUnitRegexp(opts.unitToConvert);
 
   // 过滤属性列表规则
@@ -52,15 +49,15 @@ module.exports = (options = {}) => {
   //存储横屏媒体查询的所有样式，用以开启横屏模式下，自动添加横屏媒体查询，将所有单位转换的样式加入进去
   const landscapeRules = [];
 
+  const landscapeDecls = [];
+
   return {
     postcssPlugin: "postcss-px-to-vw-strong",
 
     Once(root, { result, AtRule }) {
       // 只执行一次
-      console.log("进入Once");
       root.walkRules((rule) => {
         const file = rule.source && rule.source.input.file;
-        console.log("curRule file", file);
         if (opts.include && file) {
           if (
             Object.prototype.toString.call(opts.include) === "[object RegExp]"
@@ -218,11 +215,141 @@ module.exports = (options = {}) => {
       }
     },
 
-    /*
-    Declaration (decl, postcss) {
-      // The faster way to find Declaration node
-    }
-    */
+    Declaration(decl) {
+      /**
+       * 扩展—自定义单元功能
+       * 自定义单位转换功能不受媒体查询规则、过滤属性列表、选择器、include和exclude等配置影响
+       * 如果开启横屏模式，那么普通规则下匹配到的声明也会加入到横屏媒体查询中
+       */
+      const customUnit = opts.customUnit;
+      if (!customUnit) {
+        return;
+      }
+      const defaultCustomUnitOpts = {
+        realUnit: "px",
+        isOPenToViewPort: true,
+        joinString: "",
+        behavior: null,
+      };
+      const customUnitOpts = Object.assign(
+        {},
+        defaultCustomUnitOpts,
+        customUnit
+      );
+      const { name, joinString } = customUnitOpts;
+
+      const customUnitRegex = /\d+nx/;
+
+      if (!decl.value.match(customUnitRegex)) {
+        return;
+      }
+
+      const customUnitReplaceRegex = getUnitRegexp(name);
+
+      if (opts.landscape && !decl.parent.parent.params) {
+        // 横屏模式下，处理自定义单位转换
+        landscapeDecls.push(
+          decl.clone({
+            selector: decl.parent.selector,
+            value:
+              decl.value.replace(
+                customUnitReplaceRegex,
+                createCustomUnitReplace(
+                  opts,
+                  customUnitOpts,
+                  opts.landscapeUnit,
+                  opts.landscapeWidth
+                )
+              ) + joinString,
+          })
+        );
+      }
+
+      let replaceValue = decl.value.replace(
+        customUnitReplaceRegex,
+        createCustomUnitReplace(opts, customUnitOpts)
+      );
+      decl.value = replaceValue + joinString;
+    },
+    OnceExit: (root, { Rule }) => {
+      // 扩展—自定义单位功能，加入到横屏媒体查询
+      const customUnit = opts.customUnit;
+      if (!customUnit || landscapeDecls.length === 0) {
+        return;
+      }
+      const landscapeDeclRules = landscapeDecls.reduce((acc, item) => {
+        let node = acc.find((res) => res.selector === item.selector);
+        if (node) {
+          // 如果已经存在这个选择器，则将值添加到nodes数组中
+          if (!node.nodes) {
+            node.nodes = [];
+          }
+          // eslint-disable-next-line no-param-reassign
+          node.nodes.push({ ...item });
+        } else {
+          // 如果不存在这个选择器，则直接添加到结果数组中
+          acc.push({
+            selector: item.selector,
+            nodes: [{ ...item }],
+          });
+        }
+        return acc;
+      }, []);
+
+      const landscapeRules = landscapeDeclRules.map((value, index, array) => {
+        let newRule = new Rule({
+          source: root.source,
+          selector: value.selector,
+        });
+        return newRule;
+      });
+      landscapeRules.forEach((rule) => {
+        landscapeDecls.forEach((decl) => {
+          if (decl.selector === rule.selector) {
+            rule.append(decl);
+          }
+        });
+      });
+
+      let landscapeMedia = null;
+
+      // 遍历根节点下的所有节点
+      root.nodes.forEach((node) => {
+        // 判断节点是否为媒体查询节点，并且媒体查询条件为横屏
+        if (
+          node.type === "atrule" &&
+          node.name === "media" &&
+          node.params.includes("landscape")
+        ) {
+          // 找到符合条件的横屏媒体查询节点，将其赋值给 landscapeMedia
+          landscapeMedia = node;
+          // 终止遍历
+          return false;
+        }
+      });
+
+      const atRuleSelectors = landscapeMedia.nodes.map((rule) => rule.selector);
+      landscapeRules.forEach((lRule) => {
+        if (!atRuleSelectors.includes(lRule.selector)) {
+          landscapeMedia.append(lRule);
+        } else {
+          const hasRule = landscapeMedia.nodes.find((rule) => {
+            return rule.selector === lRule.selector;
+          });
+          const hasRuleDeclPros = hasRule.nodes.map((node) => {
+            if (node.type === "decl") {
+              return node.prop;
+            }
+          });
+
+          lRule.nodes.forEach((decl) => {
+            if (!hasRuleDeclPros.includes(decl.prop) && hasRule) {
+              hasRule.append(decl);
+            }
+          });
+        }
+      });
+    },
   };
 };
 
