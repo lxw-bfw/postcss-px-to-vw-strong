@@ -50,5 +50,57 @@ yarn add postcss-px-to-vw-strong
 
 ### 使用
 
+#### `postcss.config.ts`
+
+```typescript
+import postcssPxToViewport from 'postcss-px-to-vw-strong'
+import { CustomUnit } from 'postcss-px-to-vw-strong/dist/types/index'
+
+const customUnit: CustomUnit = {
+  name: 'nx', // 自定义单位名称
+  realUnit: 'em',// 关闭视口转换后，使用代替的真实单位，默认px
+  isOPenToViewPort: false, // 是否开启px到视口单位的转换，默认true
+  behavior: (originSize) => { // 定义对原始值的操作
+    const handleValue = originSize * 2
+    return `${handleValue}`
+  }
+}
+
+export default {
+  plugins: {
+    'postcssPxToViewport': {customUnit},
+  },
+};
+
+```
+
+#### `postcss.config.js`
+
+```js
+const postcss  = reqiuer('postcss')
+const postcssPxToViewport = reqiuer('postcss-px-to-vw-strong')
+
+
+const customUnit = {
+  name: 'nx', // 自定义单位名称
+  realUnit: 'em',// 关闭视口转换后，使用代替的真实单位，默认px
+  isOPenToViewPort: false, // 是否开启px到视口单位的转换，默认true
+  behavior: (originSize) => { // 定义对原始值的操作
+    const handleValue = originSize * 2
+    return `${handleValue}`
+  }
+}
+
+module.exports = {
+  plugins: {
+    'postcssPxToViewport': {customUnit},
+  },
+};
+```
+
+
+
+
+
 
 

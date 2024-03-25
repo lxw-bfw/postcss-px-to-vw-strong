@@ -1,7 +1,10 @@
 {
   "name": "postcss-px-to-vw-strong",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "private": false,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "description": "Support for converting CSS units (which convert PX by default) into viewport units (VW, VH, VMIN, and VMAX) support for custom units to customize the transformation content",
   "keywords": [
     "postcss",
@@ -18,7 +21,10 @@
   },
   "author": "lxw-bfw <1143167344@qq.com>",
   "license": "MIT",
-  "repository": "git@github.com:lxw-bfw/postcss-px-to-vw-strong",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:lxw-bfw/postcss-px-to-vw-strong.git"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
@@ -42,6 +48,10 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.3"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "lint-staged": {
     "*.test.{js,ts}": [
       "jest"
