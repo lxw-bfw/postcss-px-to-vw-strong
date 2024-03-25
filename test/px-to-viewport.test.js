@@ -546,7 +546,126 @@ describe('filter-prop-list', function () {
   })
 })
 
-
+describe('customUnit', () => {
+  it('Allows the use of custom units in css——nx ', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = `.rule { font-size: 5vw; margin: 5vw; margin-left: 1.5625vw; padding: 1.5625vw; padding-right: 5vw }`
+    const options = {
+      customUnit: {
+        name: 'nx',
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——isOPenToViewPort，Use custom units do not perform viewport conversion', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule { font-size: 16px; margin: 16px; margin-left: 5px; padding: 5px; padding-right: 16px }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        isOPenToViewPort:false
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——realUnit，Do not enable viewport conversion and finally replace the actual unit of the custom unit', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule { font-size: 16em; margin: 16em; margin-left: 5em; padding: 5em; padding-right: 16em }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        realUnit:'em',
+        isOPenToViewPort:false
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——joinString，The final concatenation is at the end of a css property that uses custom units', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = `.rule { font-size: 5vw!important; margin: 5vw!important; margin-left: 1.5625vw!important; padding: 1.5625vw!important; padding-right: 5vw!important }`
+    const options = {
+      customUnit: {
+        name: 'nx',
+        joinString:'!important'
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——joinString，When the viewport conversion is not enabled', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule { font-size: 16px!important; margin: 16px!important; margin-left: 5px!important; padding: 5px!important; padding-right: 16px!important }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        joinString:'!important',
+        isOPenToViewPort:false
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——joinString，In conjunction with the use of real replacement units', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule { font-size: 16em!important; margin: 16em!important; margin-left: 5em!important; padding: 5em!important; padding-right: 16em!important }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        realUnit:'em',
+        joinString:'!important',
+        isOPenToViewPort:false
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——behavior，Use custom behavior functions to operate on raw values', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule { font-size: 32em!important; margin: 32em!important; margin-left: 10em!important; padding: 10em!important; padding-right: 32em!important }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        realUnit:'em',
+        joinString:'!important',
+        isOPenToViewPort:false,
+        behavior: function (num) {
+          return `${num*2}`
+        }
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('use customUnit options——behavior，Enable the viewport conversion condition', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = '.rule {  font-size: 10vw; margin: 10vw; margin-left: 3.125vw; padding: 3.125vw; padding-right: 10vw }'
+    const options = {
+      customUnit: {
+        name: 'nx',
+        behavior: function (num) {
+          return `${num*2}`
+        }
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+  it('Allows the use of custom units in css——nx and landscape is true', () => {
+    const css = '.rule { font-size: 16nx; margin: 16nx; margin-left: 5nx; padding: 5nx; padding-right: 16nx }'
+    const expected = `.rule { font-size: 5vw; margin: 5vw; margin-left: 1.5625vw; padding: 1.5625vw; padding-right: 5vw }@media (orientation: landscape) { .rule { font-size: 2.8169vw; margin: 2.8169vw; margin-left: 0.88028vw; padding: 0.88028vw; padding-right: 2.8169vw } }`
+    const options = {
+      landscape: true,
+      customUnit: {
+        name: 'nx',
+      },
+    }
+    processed = postcss(pxToViewport(options)).process(css).css
+    expect(formatCSS(processed)).toBe(formatCSS(expected))
+  })
+})
 
 describe('landscape', function () {
   it('should add landscape atRule', function () {
