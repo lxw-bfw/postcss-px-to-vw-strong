@@ -1,6 +1,7 @@
 {
   "name": "postcss-px-to-vw-strong",
   "version": "0.0.0",
+  "private": false,
   "description": "Support for converting CSS units (which convert PX by default) into viewport units (VW, VH, VMIN, and VMAX) support for custom units to customize the transformation content",
   "keywords": [
     "postcss",
