@@ -1,6 +1,8 @@
 node_modules/
 npm-debug.log
 yarn-error.log
+封装工程环境和模板脚手架.md
+工程环境-优化.md
 
 
 dist/

@@ -38,3 +38,17 @@
 - 支持传递`behavior`函数，来接收每一个自定义单位的原始值，对其进行二次操作，二次操作后的值会继续输入插件进行处理
 - 支持传递`joinString`属性，可以定义在转换后的新的`css`属性值追加一些字符串
 
+## 安装和使用
+
+### 安装
+
+```bash
+npm i postcss-px-to-vw-strong
+or
+yarn add postcss-px-to-vw-strong
+```
+
+### 使用
+
+
+
