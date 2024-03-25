@@ -10,95 +10,95 @@
 // 这里定义了一个名为 filterPropList 的对象，包含了各种过滤属性列表的方法
 const filterPropList = {
   // 精确匹配，不含通配符或否定符
-  exact: function (list) {
-    return list.filter(function (m) {
-      return m.match(/^[^*!]+$/);
-    });
+  exact(list: string[]) {
+    return list.filter((m: string) => {
+      return m.match(/^[^*!]+$/)
+    })
   },
   // 包含通配符 * 的匹配，包含规则，只要属性包含这部分就符合
   // 这里是把属于包含关系的字符串提取出来，存放在contain数组里面
-  contain: function (list) {
+  contain(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^\*.+\*$/);
+      .filter((m: string) => {
+        return m.match(/^\*.+\*$/)
       })
-      .map(function (m) {
-        return m.substr(1, m.length - 2);
-      });
+      .map((m: string) => {
+        return m.substr(1, m.length - 2)
+      })
   },
   // 以通配符 * 结尾的匹配
 
   // 匹配以什么结尾的字符串，分别提取出这些字符串存放在endWith数组中
-  endWith: function (list) {
+  endWith(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^\*[^*]+$/);
+      .filter((m: string) => {
+        return m.match(/^\*[^*]+$/)
       })
-      .map(function (m) {
-        return m.substr(1);
-      });
+      .map((m: string) => {
+        return m.substr(1)
+      })
   },
   // 以通配符 * 开头的匹配
   // ...........
-  startWith: function (list) {
+  startWith(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^[^*!]+\*$/);
+      .filter((m: string) => {
+        return m.match(/^[^*!]+\*$/)
       })
-      .map(function (m) {
-        return m.substr(0, m.length - 1);
-      });
+      .map((m: string) => {
+        return m.substr(0, m.length - 1)
+      })
   },
   // 不含通配符的否定匹配
   // ..........
-  notExact: function (list) {
+  notExact(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^![^*].*$/);
+      .filter((m: string) => {
+        return m.match(/^![^*].*$/)
       })
-      .map(function (m) {
-        return m.substr(1);
-      });
+      .map((m: string) => {
+        return m.substr(1)
+      })
   },
   // 不含通配符 * 的否定匹配
   // ..............
-  notContain: function (list) {
+  notContain(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^!\*.+\*$/);
+      .filter((m: string) => {
+        return m.match(/^!\*.+\*$/)
       })
-      .map(function (m) {
-        return m.substr(2, m.length - 3);
-      });
+      .map((m: string) => {
+        return m.substr(2, m.length - 3)
+      })
   },
   // 不以通配符 * 结尾的否定匹配
   // ..............
-  notEndWith: function (list) {
+  notEndWith(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^!\*[^*]+$/);
+      .filter((m: string) => {
+        return m.match(/^!\*[^*]+$/)
       })
-      .map(function (m) {
-        return m.substr(2);
-      });
+      .map((m: string) => {
+        return m.substr(2)
+      })
   },
   // 不以通配符 * 开头的否定匹配
   // ..............
-  notStartWith: function (list) {
+  notStartWith(list: string[]) {
     return list
-      .filter(function (m) {
-        return m.match(/^![^*]+\*$/);
+      .filter((m: string) => {
+        return m.match(/^![^*]+\*$/)
       })
-      .map(function (m) {
-        return m.substr(1, m.length - 2);
-      });
+      .map((m: string) => {
+        return m.substr(1, m.length - 2)
+      })
   },
-};
+}
 
-function createPropListMatcher(propList) {
+function createPropListMatcher(propList: string[]) {
   // matchaAll表示，匹配所有属性，也就是当前propList是 [*]
-  const hasWild = propList.indexOf("*") > -1;
-  const matchAll = hasWild && propList.length === 1;
+  const hasWild = propList.indexOf('*') > -1
+  const matchAll = hasWild && propList.length === 1
 
   // 根据各种过滤条件创建属性列表匹配器
   // 根据propList的其他规则比如精确匹配，取反等，对propList里面的全部元素进行分类，比如把所有满足精确
@@ -113,42 +113,39 @@ function createPropListMatcher(propList) {
     notContain: filterPropList.notContain(propList),
     notStartWith: filterPropList.notStartWith(propList),
     notEndWith: filterPropList.notEndWith(propList),
-  };
+  }
   /**
    * 最终返回一个闭包，对传入的属性根据propList列表里面的规则，来判断当前prop是否进行转换
    *
    */
-  return function (prop) {
-    if (matchAll) return true;
+  return (prop: string): boolean => {
+    if (matchAll) return true
     return (
       (hasWild ||
         lists.exact.indexOf(prop) > -1 ||
-        lists.contain.some(function (m) {
-          return prop.indexOf(m) > -1;
+        lists.contain.some((m: string) => {
+          return prop.indexOf(m) > -1
         }) ||
-        lists.startWith.some(function (m) {
-          return prop.indexOf(m) === 0;
+        lists.startWith.some((m: string) => {
+          return prop.indexOf(m) === 0
         }) ||
-        lists.endWith.some(function (m) {
-          return prop.indexOf(m) === prop.length - m.length;
+        lists.endWith.some((m: string) => {
+          return prop.indexOf(m) === prop.length - m.length
         })) &&
       !(
         lists.notExact.indexOf(prop) > -1 ||
-        lists.notContain.some(function (m) {
-          return prop.indexOf(m) > -1;
+        lists.notContain.some((m: string) => {
+          return prop.indexOf(m) > -1
         }) ||
-        lists.notStartWith.some(function (m) {
-          return prop.indexOf(m) === 0;
+        lists.notStartWith.some((m: string) => {
+          return prop.indexOf(m) === 0
         }) ||
-        lists.notEndWith.some(function (m) {
-          return prop.indexOf(m) === prop.length - m.length;
+        lists.notEndWith.some((m: string) => {
+          return prop.indexOf(m) === prop.length - m.length
         })
       )
-    );
-  };
+    )
+  }
 }
 
-module.exports = {
-  filterPropList,
-  createPropListMatcher,
-};
+export { filterPropList, createPropListMatcher }

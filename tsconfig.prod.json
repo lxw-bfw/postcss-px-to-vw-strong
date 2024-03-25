@@ -1,0 +1,6 @@
+{
+    "extends": "./tsconfig.json", // 继承通用配置
+    "include": [
+        "./src/index.ts",
+    ],
+}
